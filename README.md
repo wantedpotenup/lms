@@ -27,10 +27,7 @@
 7. 생성된 서비스 계정을 클릭 → **키(Keys)** 탭 → **키 추가 → 새 키 만들기 → JSON** 을 선택합니다.
 8. JSON 파일이 자동으로 다운로드됩니다. 이 파일을 안전한 곳에 보관하세요. **다른 사람과 공유하거나 GitHub에 올리면 안 됩니다.**
 
-다운로드한 JSON 파일을 열어보면 아래와 같은 값이 들어있습니다. 이후 단계에서 필요하니 잘 기억해두세요.
-
-- `client_email` → 서비스 계정 이메일 (예: `lms-bot@lms-project.iam.gserviceaccount.com`)
-- `private_key` → `-----BEGIN PRIVATE KEY-----`로 시작하는 긴 문자열
+다운로드한 JSON 파일은 이후 단계에서 **파일 전체를 그대로** 사용합니다. `private_key`만 따로 잘라서 복사하면 줄바꿈이 깨져서 로그인 오류(`DECODER routines::unsupported` 등)가 나기 쉬우니, 파일을 열어서 내용을 자르지 말고 통째로 복사해두세요.
 
 ---
 
@@ -91,17 +88,18 @@
 
 1. [Vercel](https://vercel.com)에 로그인합니다.
 2. **Add New → Project**를 선택하고, 방금 올린 GitHub 저장소를 선택해서 Import 합니다.
-3. **Environment Variables(환경변수)** 설정 화면에서 아래 5개 값을 입력합니다. (`.env.local.example` 파일에 각 항목 설명이 적혀있습니다)
+3. **Environment Variables(환경변수)** 설정 화면에서 아래 4개 값을 입력합니다. (`.env.local.example` 파일에 각 항목 설명이 적혀있습니다)
 
    | 이름 | 값 |
    | --- | --- |
-   | `GOOGLE_SERVICE_ACCOUNT_EMAIL` | 1단계에서 확인한 `client_email` |
-   | `GOOGLE_PRIVATE_KEY` | 1단계에서 확인한 `private_key` (따옴표 포함 전체를 그대로 붙여넣기) |
+   | `GOOGLE_SERVICE_ACCOUNT_JSON` | 1단계에서 다운로드한 JSON 키 파일을 텍스트 편집기로 열어서, 처음 `{` 부터 마지막 `}` 까지 **전체 내용을 그대로** 복사해서 붙여넣기 |
    | `GOOGLE_SHEET_ID` | 2단계에서 확인한 시트 ID |
    | `SESSION_SECRET` | 아무 문자열이나 20자 이상으로 직접 만들어 입력 (예: 키보드를 아무렇게나 눌러 만든 문자열) |
    | `ADMIN_PASSWORD` | 관리자 화면(`/admin`) 로그인 비밀번호로 사용할 값 |
 
-   `GOOGLE_PRIVATE_KEY`는 줄바꿈이 포함된 긴 문자열입니다. JSON 파일에 적힌 `\n` 표시가 그대로 있어도 괜찮으니, `-----BEGIN PRIVATE KEY-----`부터 `-----END PRIVATE KEY-----\n`까지 전체를 그대로 복사해서 붙여넣으세요.
+   > **중요:** `private_key` 값만 따로 잘라서 넣지 마세요. 줄바꿈이 깨지면서 `DECODER routines::unsupported` 같은 오류가 나는 가장 흔한 원인입니다. 반드시 JSON 파일 **전체**(중괄호 `{ }` 포함)를 하나의 값으로 붙여넣으세요.
+   >
+   > (예전 방식으로 `GOOGLE_SERVICE_ACCOUNT_EMAIL`과 `GOOGLE_PRIVATE_KEY`를 따로 넣고 싶다면 여전히 가능하지만, `GOOGLE_SERVICE_ACCOUNT_JSON`이 설정되어 있으면 그 값이 우선됩니다.)
 
 4. **Deploy** 버튼을 누르면 몇 분 안에 배포가 완료되고, `https://프로젝트이름.vercel.app` 같은 주소가 생성됩니다.
 
@@ -165,10 +163,13 @@ npm run dev
 - 생년월일은 형식이 달라도(2000-01-01, 20000101 등) 숫자만 비교하므로 큰 문제는 없지만, 이름에 공백이 섞여있지 않은지 확인해주세요.
 
 **화면에 500 오류가 떠요 / 데이터가 안 보여요**
-- Vercel 프로젝트의 환경변수 5개(`GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_PRIVATE_KEY`, `GOOGLE_SHEET_ID`, `SESSION_SECRET`, `ADMIN_PASSWORD`)가 모두 정확히 입력되어 있는지 확인하세요.
+- Vercel 프로젝트의 환경변수 4개(`GOOGLE_SERVICE_ACCOUNT_JSON`, `GOOGLE_SHEET_ID`, `SESSION_SECRET`, `ADMIN_PASSWORD`)가 모두 정확히 입력되어 있는지 확인하세요.
 - 구글 시트가 서비스 계정 이메일과 **편집자**로 공유되어 있는지 확인하세요.
 - 시트 탭 이름이 "구성원", "테스트", "테스트결과", "테스트문항결과", "프로젝트평가"와 정확히 일치하는지 확인하세요. (띄어쓰기, 오타 주의)
 - 환경변수를 새로 입력했다면 Vercel에서 **Redeploy**를 해야 반영됩니다.
+
+**`DECODER routines::unsupported` 같은 오류가 떠요**
+- `GOOGLE_PRIVATE_KEY`를 따로 잘라서 넣었다면 줄바꿈이 깨진 것입니다. `GOOGLE_SERVICE_ACCOUNT_EMAIL`/`GOOGLE_PRIVATE_KEY` 두 값을 지우고, 대신 `GOOGLE_SERVICE_ACCOUNT_JSON` 하나에 JSON 키 파일 **전체 내용**(`{`부터 `}`까지)을 그대로 붙여넣은 뒤 Redeploy 하세요.
 
 **관리자 비밀번호를 잊어버렸어요**
 - Vercel 환경변수의 `ADMIN_PASSWORD` 값을 새 값으로 바꾸고 Redeploy 하세요.

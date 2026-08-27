@@ -39,19 +39,31 @@ const HEADERS = {
   ],
 };
 
-async function main() {
+function resolveCredentials() {
+  const rawJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+  if (rawJson) {
+    const parsed = JSON.parse(rawJson);
+    return { email: parsed.client_email, key: parsed.private_key };
+  }
   const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
   const rawKey = process.env.GOOGLE_PRIVATE_KEY;
-  const spreadsheetId = process.env.GOOGLE_SHEET_ID;
+  if (!email || !rawKey) return null;
+  const key = rawKey.includes("\\n") ? rawKey.replace(/\\n/g, "\n") : rawKey;
+  return { email, key };
+}
 
-  if (!email || !rawKey || !spreadsheetId) {
+async function main() {
+  const spreadsheetId = process.env.GOOGLE_SHEET_ID;
+  const creds = resolveCredentials();
+
+  if (!creds || !spreadsheetId) {
     console.error(
-      "❌ .env.local 에 GOOGLE_SERVICE_ACCOUNT_EMAIL / GOOGLE_PRIVATE_KEY / GOOGLE_SHEET_ID 값이 모두 채워져 있는지 확인해주세요."
+      "❌ .env.local 에 GOOGLE_SERVICE_ACCOUNT_JSON(또는 GOOGLE_SERVICE_ACCOUNT_EMAIL/GOOGLE_PRIVATE_KEY)과 GOOGLE_SHEET_ID 값이 채워져 있는지 확인해주세요."
     );
     process.exit(1);
   }
 
-  const key = rawKey.includes("\\n") ? rawKey.replace(/\\n/g, "\n") : rawKey;
+  const { email, key } = creds;
   const auth = new google.auth.JWT({
     email,
     key,
