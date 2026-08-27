@@ -14,13 +14,22 @@ export default function TestsPage() {
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [loadError, setLoadError] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch("/api/admin/tests");
       const data = await res.json();
+      if (!res.ok) {
+        setLoadError(data.error || "목록을 불러오지 못했습니다.");
+        setTests([]);
+        return;
+      }
+      setLoadError("");
       setTests(data.tests || []);
+    } catch {
+      setLoadError("네트워크 오류로 목록을 불러오지 못했습니다.");
     } finally {
       setLoading(false);
     }
@@ -97,6 +106,12 @@ export default function TestsPage() {
         <h1 className="text-xl font-bold">테스트 관리</h1>
         <Button onClick={openCreate}>+ 테스트 추가</Button>
       </div>
+
+      {loadError && (
+        <p className="mb-4 rounded-xl bg-rose-50 px-3.5 py-2.5 text-sm text-rose-600 dark:bg-rose-500/10 dark:text-rose-400">
+          {loadError}
+        </p>
+      )}
 
       {showForm && (
         <Card className="mb-6">

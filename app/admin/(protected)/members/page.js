@@ -16,6 +16,7 @@ export default function MembersPage() {
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [loadError, setLoadError] = useState("");
 
   const load = useCallback(async (kw = "") => {
     setLoading(true);
@@ -23,7 +24,15 @@ export default function MembersPage() {
       const qs = kw ? `?keyword=${encodeURIComponent(kw)}` : "";
       const res = await fetch(`/api/admin/members${qs}`);
       const data = await res.json();
+      if (!res.ok) {
+        setLoadError(data.error || "목록을 불러오지 못했습니다.");
+        setMembers([]);
+        return;
+      }
+      setLoadError("");
       setMembers(data.members || []);
+    } catch {
+      setLoadError("네트워크 오류로 목록을 불러오지 못했습니다.");
     } finally {
       setLoading(false);
     }
@@ -92,6 +101,12 @@ export default function MembersPage() {
         <h1 className="text-xl font-bold">구성원 관리</h1>
         <Button onClick={openCreate}>+ 구성원 추가</Button>
       </div>
+
+      {loadError && (
+        <p className="mb-4 rounded-xl bg-rose-50 px-3.5 py-2.5 text-sm text-rose-600 dark:bg-rose-500/10 dark:text-rose-400">
+          {loadError}
+        </p>
+      )}
 
       <div className="mb-4 flex gap-2">
         <Input

@@ -27,6 +27,7 @@ export default function ProjectsPage() {
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [loadError, setLoadError] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -34,8 +35,17 @@ export default function ProjectsPage() {
       const [pRes, mRes] = await Promise.all([fetch("/api/admin/projects"), fetch("/api/admin/members")]);
       const pData = await pRes.json();
       const mData = await mRes.json();
+      if (!pRes.ok || !mRes.ok) {
+        setLoadError(pData.error || mData.error || "목록을 불러오지 못했습니다.");
+        setProjects([]);
+        setMembers([]);
+        return;
+      }
+      setLoadError("");
       setProjects(pData.projects || []);
       setMembers(mData.members || []);
+    } catch {
+      setLoadError("네트워크 오류로 목록을 불러오지 못했습니다.");
     } finally {
       setLoading(false);
     }
@@ -116,6 +126,12 @@ export default function ProjectsPage() {
         <h1 className="text-xl font-bold">프로젝트 평가 관리</h1>
         <Button onClick={openCreate}>+ 평가 추가</Button>
       </div>
+
+      {loadError && (
+        <p className="mb-4 rounded-xl bg-rose-50 px-3.5 py-2.5 text-sm text-rose-600 dark:bg-rose-500/10 dark:text-rose-400">
+          {loadError}
+        </p>
+      )}
 
       {showForm && (
         <Card className="mb-6">
