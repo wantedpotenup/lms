@@ -40,10 +40,6 @@ export default async function ProjectDetailPage({ params }) {
       </div>
 
       <Card className="mb-6">
-        <ScoreBar value={detail.total} max={detail.maxTotal} colorClassName="bg-emerald-500" />
-      </Card>
-
-      <Card className="mb-6">
         <h2 className="mb-4 text-sm font-semibold">평가 결과</h2>
         <div className="space-y-4">
           {detail.items.map((item) => (

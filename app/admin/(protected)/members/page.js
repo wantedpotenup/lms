@@ -4,9 +4,9 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Button, Card, Input, Label, Select } from "@/components/ui";
 
-const STATUS_OPTIONS = ["재학", "수료", "중도이탈"];
+const STATUS_OPTIONS = ["과정 진행중", "중도 포기", "조기취업", "수료"];
 
-const emptyForm = { 구성원ID: "", 이름: "", 생년월일: "", 과정명: "", 기수: "", 상태: "재학" };
+const emptyForm = { 구성원ID: "", 이름: "", 생년월일: "", 과정명: "", 기수: "", 상태: "과정 진행중" };
 
 export default function MembersPage() {
   const [members, setMembers] = useState([]);
@@ -58,7 +58,7 @@ export default function MembersPage() {
       생년월일: m["생년월일"],
       과정명: m["과정명"],
       기수: m["기수"],
-      상태: m["상태"] || "재학",
+      상태: m["상태"] || "과정 진행중",
     });
     setEditingId(m["구성원ID"]);
     setError("");

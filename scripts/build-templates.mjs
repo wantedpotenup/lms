@@ -98,7 +98,7 @@ async function buildMembersWorkbook() {
     { header: "생년월일(필수, 예: 1998-05-06)", key: "birth", width: 24 },
     { header: "과정명(선택)", key: "course", width: 16 },
     { header: "기수(선택)", key: "cohort", width: 10 },
-    { header: "상태(선택, 기본값 재학)", key: "status", width: 16 },
+    { header: "상태(선택, 기본값 과정 진행중)", key: "status", width: 16 },
   ];
   sheet.columns = columns;
   const totalColCount = columns.length;
