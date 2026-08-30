@@ -18,8 +18,27 @@ const SHEET_NAMES = {
 
 const HEADERS = {
   [SHEET_NAMES.MEMBERS]: ["구성원ID", "이름", "생년월일", "과정명", "기수", "상태"],
-  [SHEET_NAMES.TESTS]: ["테스트ID", "테스트명", "과정명", "기수", "응시일", "만점", "공개여부"],
-  [SHEET_NAMES.TEST_RESULTS]: ["결과ID", "테스트ID", "구성원ID", "총점", "총평", "등록일", "수정일"],
+  [SHEET_NAMES.TESTS]: [
+    "테스트ID",
+    "테스트명",
+    "과정명",
+    "기수",
+    "응시일",
+    "만점",
+    "공개여부",
+    "문항배점",
+    "채점기준",
+  ],
+  [SHEET_NAMES.TEST_RESULTS]: [
+    "결과ID",
+    "테스트ID",
+    "구성원ID",
+    "총점",
+    "총평",
+    "문항별피드백",
+    "등록일",
+    "수정일",
+  ],
   [SHEET_NAMES.TEST_QUESTIONS]: ["결과ID", "문항번호", "배점", "획득점수", "감점여부", "피드백"],
   [SHEET_NAMES.PROJECTS]: [
     "평가ID",

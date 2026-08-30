@@ -4,7 +4,17 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Badge, Button, Card, Input, Label } from "@/components/ui";
 
-const emptyForm = { 테스트ID: "", 테스트명: "", 과정명: "", 기수: "", 응시일: "", 만점: 100, 공개여부: "비공개" };
+const emptyForm = {
+  테스트ID: "",
+  테스트명: "",
+  과정명: "",
+  기수: "",
+  응시일: "",
+  만점: 100,
+  공개여부: "비공개",
+  문항배점: "",
+  채점기준: "",
+};
 
 export default function TestsPage() {
   const [tests, setTests] = useState([]);
@@ -56,6 +66,8 @@ export default function TestsPage() {
       응시일: t["응시일"],
       만점: t["만점"],
       공개여부: t["공개여부"] || "비공개",
+      문항배점: t["문항배점"] || "",
+      채점기준: t["채점기준"] || "",
     });
     setEditingId(t["테스트ID"]);
     setError("");
@@ -137,6 +149,26 @@ export default function TestsPage() {
               <Label>응시일 (예: 2026-08-10)</Label>
               <Input value={form["응시일"]} onChange={(e) => setForm({ ...form, 응시일: e.target.value })} />
             </div>
+            <div className="sm:col-span-2">
+              <Label>문항별 배점 (쉼표로 구분, 예: 8,8,8,5,8,12,8,12,8,5,8,10)</Label>
+              <Input
+                value={form["문항배점"]}
+                onChange={(e) => setForm({ ...form, 문항배점: e.target.value })}
+                placeholder="8,8,8,5,8,12,8,12,8,5,8,10"
+              />
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                입력해두면 강사님께 드릴 채점 시트(문항 수·배점이 자동으로 반영된 엑셀 파일)를 바로 만들어드릴 수
+                있어요. 나중에 채점 결과를 업로드할 때도 이 배점을 기준으로 검증합니다.
+              </p>
+            </div>
+            <div className="sm:col-span-2">
+              <Label>채점 기준 (선택, 강사님용 채점 시트 안내문에 표시됩니다)</Label>
+              <Input
+                value={form["채점기준"]}
+                onChange={(e) => setForm({ ...form, 채점기준: e.target.value })}
+                placeholder="핵심 개념과 정답 방향이 명확한 경우 경미한 표현 차이는 인정합니다."
+              />
+            </div>
             {error && <p className="sm:col-span-2 text-sm text-rose-600 dark:text-rose-400">{error}</p>}
             <div className="flex gap-2 sm:col-span-2">
               <Button type="submit" disabled={saving}>
@@ -179,6 +211,13 @@ export default function TestsPage() {
                       결과 관리
                     </Button>
                   </Link>
+                  {t["문항배점"] && (
+                    <a href={`/api/admin/tests/${t["테스트ID"]}/grading-sheet`}>
+                      <Button variant="secondary" className="px-2.5 py-1.5 text-xs">
+                        채점 시트 다운로드
+                      </Button>
+                    </a>
+                  )}
                   <Button variant="secondary" className="px-2.5 py-1.5 text-xs" onClick={() => togglePublish(t)}>
                     {t["공개여부"] === "공개" ? "비공개로 전환" : "공개로 전환"}
                   </Button>

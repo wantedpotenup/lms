@@ -4,12 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node scripts/build-templates.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "setup-sheets": "node scripts/setup-sheets.mjs"
   },
   "dependencies": {
+    "exceljs": "^4.4.0",
     "googleapis": "^176.0.0",
     "jose": "^6.2.10",
     "next": "16.3.3",

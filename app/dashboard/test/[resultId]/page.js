@@ -91,6 +91,15 @@ export default async function TestDetailPage({ params }) {
         </Card>
       )}
 
+      {detail.combinedFeedback && (
+        <Card className="mb-6">
+          <h2 className="mb-2 text-sm font-semibold">문항별 피드백</h2>
+          <p className="whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-300">
+            {detail.combinedFeedback}
+          </p>
+        </Card>
+      )}
+
       <Card>
         <h2 className="mb-2 text-sm font-semibold">총평</h2>
         <p className="whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-300">

@@ -1,5 +1,18 @@
 @import "tailwindcss";
 
+/*
+ * 이 프로젝트는 항상 라이트 모드로만 보이도록 고정한다.
+ * Tailwind의 dark: 접두사 클래스는 원래 "기기의 다크모드 설정"을
+ * 기준으로 자동 적용되는데(@media prefers-color-scheme), 그러면
+ * PC는 라이트 모드인데 휴대폰은 다크 모드로 보이는 등 기기마다
+ * 다르게 보이는 문제가 생긴다. 아래 한 줄로 dark: 클래스가
+ * ".dark" 라는 클래스가 실제 html에 붙어있을 때만 적용되도록
+ * 바꿔둔다. 이 프로젝트 어디에도 .dark 클래스를 추가하지 않으므로
+ * dark: 로 시작하는 스타일은 절대 적용되지 않고, 항상 라이트 모드
+ * 스타일만 보이게 된다.
+ */
+@custom-variant dark (&:is(.dark &));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -9,13 +22,6 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: "Apple SD Gothic Neo", "Malgun Gothic", "Segoe UI", system-ui, sans-serif;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
