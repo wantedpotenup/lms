@@ -8,9 +8,23 @@ function UploadResult({ result }) {
   return (
     <div className="mt-4">
       {result.ok ? (
-        <p className="rounded-xl bg-emerald-50 px-3.5 py-2.5 text-sm text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
-          {result.savedCount}건이 저장되었습니다.
-        </p>
+        <div>
+          <p className="rounded-xl bg-emerald-50 px-3.5 py-2.5 text-sm text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
+            {result.savedCount}건이 저장되었습니다.
+          </p>
+          {result.skipped && result.skipped.length > 0 && (
+            <div className="mt-2 rounded-xl bg-amber-50 px-3.5 py-3 text-sm text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
+              <p className="mb-1 font-medium">
+                {result.skipped.length}건은 이미 등록되어 있어 건너뛰었어요.
+              </p>
+              <ul className="list-disc space-y-0.5 pl-4 text-xs">
+                {result.skipped.map((d, i) => (
+                  <li key={i}>{d}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
       ) : (
         <div className="rounded-xl bg-rose-50 px-3.5 py-3 text-sm text-rose-600 dark:bg-rose-500/10 dark:text-rose-400">
           <p className="mb-1 font-medium">{result.error}</p>
@@ -66,7 +80,7 @@ function TestResultUploadBox() {
       if (!res.ok) {
         setResult({ ok: false, error: data.error, details: data.details || [] });
       } else {
-        setResult({ ok: true, savedCount: data.savedCount });
+        setResult({ ok: true, savedCount: data.savedCount, skipped: data.skipped || [] });
         setFile(null);
         e.target.reset();
       }
@@ -151,7 +165,7 @@ function MemberUploadBox() {
       if (!res.ok) {
         setResult({ ok: false, error: data.error, details: data.details || [] });
       } else {
-        setResult({ ok: true, savedCount: data.savedCount });
+        setResult({ ok: true, savedCount: data.savedCount, skipped: data.skipped || [] });
         setFile(null);
         e.target.reset();
       }
@@ -208,7 +222,7 @@ function ProjectUploadBox() {
       if (!res.ok) {
         setResult({ ok: false, error: data.error, details: data.details || [] });
       } else {
-        setResult({ ok: true, savedCount: data.savedCount });
+        setResult({ ok: true, savedCount: data.savedCount, skipped: data.skipped || [] });
         setFile(null);
         e.target.reset();
       }

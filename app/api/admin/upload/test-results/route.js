@@ -18,7 +18,7 @@ export async function POST(request) {
     if (!result.success) {
       return NextResponse.json({ error: "업로드 파일에 오류가 있어 저장하지 않았습니다.", details: result.errors }, { status: 400 });
     }
-    return NextResponse.json({ ok: true, savedCount: result.savedCount });
+    return NextResponse.json({ ok: true, savedCount: result.savedCount, skipped: result.skipped || [] });
   } catch (err) {
     console.error(err);
     const status = err instanceof ValidationError ? 400 : 500;
