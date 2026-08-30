@@ -88,15 +88,77 @@ async function buildProjectEvaluationWorkbook() {
   return wb;
 }
 
+async function buildMembersWorkbook() {
+  const wb = new ExcelJS.Workbook();
+  const sheet = wb.addWorksheet("구성원 명단");
+
+  const columns = [
+    { header: "구분", key: "no", width: 6 },
+    { header: "이름", key: "name", width: 12 },
+    { header: "생년월일(필수, 예: 1998-05-06)", key: "birth", width: 24 },
+    { header: "과정명(선택)", key: "course", width: 16 },
+    { header: "기수(선택)", key: "cohort", width: 10 },
+    { header: "상태(선택, 기본값 재학)", key: "status", width: 16 },
+  ];
+  sheet.columns = columns;
+  const totalColCount = columns.length;
+
+  sheet.insertRow(1, []);
+  sheet.mergeCells(1, 1, 1, totalColCount);
+  const titleCell = sheet.getCell(1, 1);
+  titleCell.value = "구성원 명단";
+  titleCell.font = { size: 14, bold: true, color: { argb: "FFFFFFFF" } };
+  titleCell.alignment = { horizontal: "center", vertical: "middle" };
+  titleCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: TITLE_FILL } };
+  sheet.getRow(1).height = 26;
+
+  const headerRowIndex = 2;
+  const headerRow = sheet.getRow(headerRowIndex);
+  for (let c = 1; c <= totalColCount; c += 1) {
+    const cell = headerRow.getCell(c);
+    cell.font = { bold: true };
+    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: HEADER_FILL } };
+    cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+    cell.border = { top: THIN, left: THIN, bottom: THIN, right: THIN };
+  }
+  headerRow.height = 30;
+  sheet.autoFilter = {
+    from: { row: headerRowIndex, column: 1 },
+    to: { row: headerRowIndex, column: totalColCount },
+  };
+  sheet.views = [{ state: "frozen", xSplit: 2, ySplit: headerRowIndex }];
+
+  // 생년월일 칸은 숫자로 인식되어 앞자리 0이 사라지는 사고를 막기 위해
+  // 텍스트 서식으로 미리 지정해둔다.
+  sheet.getColumn(3).numFmt = "@";
+
+  for (let i = 0; i < EMPTY_DATA_ROWS; i += 1) {
+    const r = headerRowIndex + 1 + i;
+    const row = sheet.getRow(r);
+    row.getCell(1).value = i + 1;
+    for (let c = 1; c <= totalColCount; c += 1) {
+      row.getCell(c).border = { top: THIN, left: THIN, bottom: THIN, right: THIN };
+    }
+  }
+
+  return wb;
+}
+
 async function main() {
   const outDir = path.join(__dirname, "..", "public", "templates");
   await mkdir(outDir, { recursive: true });
 
-  const wb = await buildProjectEvaluationWorkbook();
-  const buffer = await wb.xlsx.writeBuffer();
-  const outPath = path.join(outDir, "project-evaluations-template.xlsx");
-  await writeFile(outPath, buffer);
-  console.log(`[build-templates] ${outPath} 생성 완료`);
+  const projectWb = await buildProjectEvaluationWorkbook();
+  const projectBuffer = await projectWb.xlsx.writeBuffer();
+  const projectPath = path.join(outDir, "project-evaluations-template.xlsx");
+  await writeFile(projectPath, projectBuffer);
+  console.log(`[build-templates] ${projectPath} 생성 완료`);
+
+  const membersWb = await buildMembersWorkbook();
+  const membersBuffer = await membersWb.xlsx.writeBuffer();
+  const membersPath = path.join(outDir, "members-template.xlsx");
+  await writeFile(membersPath, membersBuffer);
+  console.log(`[build-templates] ${membersPath} 생성 완료`);
 }
 
 main().catch((err) => {

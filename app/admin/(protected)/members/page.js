@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { Button, Card, Input, Label, Select } from "@/components/ui";
 
 const STATUS_OPTIONS = ["재학", "수료", "중도이탈"];
@@ -99,7 +100,12 @@ export default function MembersPage() {
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl font-bold">구성원 관리</h1>
-        <Button onClick={openCreate}>+ 구성원 추가</Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link href="/admin/upload">
+            <Button variant="secondary">엑셀로 일괄 등록</Button>
+          </Link>
+          <Button onClick={openCreate}>+ 구성원 추가</Button>
+        </div>
       </div>
 
       {loadError && (

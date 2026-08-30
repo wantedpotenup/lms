@@ -133,6 +133,63 @@ function TestResultUploadBox() {
   );
 }
 
+function MemberUploadBox() {
+  const [file, setFile] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+
+  async function handleUpload(e) {
+    e.preventDefault();
+    if (!file) return;
+    setLoading(true);
+    setResult(null);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/admin/upload/members", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok) {
+        setResult({ ok: false, error: data.error, details: data.details || [] });
+      } else {
+        setResult({ ok: true, savedCount: data.savedCount });
+        setFile(null);
+        e.target.reset();
+      }
+    } catch {
+      setResult({ ok: false, error: "네트워크 오류가 발생했습니다.", details: [] });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <Card>
+      <h2 className="mb-1 text-sm font-semibold">구성원 일괄 등록</h2>
+      <p className="mb-4 text-xs text-slate-500 dark:text-slate-400">
+        한 명당 한 행으로 입력합니다. 이름·생년월일이 똑같은 사람이 이미 등록되어 있으면 저장하지 않고 알려드려요.
+      </p>
+      <a
+        href="/templates/members-template.xlsx"
+        className="mb-4 inline-block text-xs text-indigo-600 underline underline-offset-2 dark:text-indigo-400"
+      >
+        구성원 명단 시트(엑셀) 다운로드
+      </a>
+      <form onSubmit={handleUpload} className="space-y-3">
+        <input
+          type="file"
+          accept=".csv,.xlsx,.xls"
+          onChange={(e) => setFile(e.target.files?.[0] || null)}
+          className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-medium hover:file:bg-slate-200 dark:text-slate-300 dark:file:bg-slate-800 dark:hover:file:bg-slate-700"
+        />
+        <Button type="submit" disabled={!file || loading}>
+          {loading ? "업로드 중..." : "업로드"}
+        </Button>
+      </form>
+      <UploadResult result={result} />
+    </Card>
+  );
+}
+
 function ProjectUploadBox() {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -197,6 +254,7 @@ export default function UploadPage() {
         오류 내용을 아래에 보여줍니다. 이름이 같은 구성원이 여러 명이면 생년월일 컬럼으로 구분해주세요.
       </p>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <MemberUploadBox />
         <TestResultUploadBox />
         <ProjectUploadBox />
       </div>
