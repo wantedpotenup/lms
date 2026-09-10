@@ -74,12 +74,12 @@ export default function LoginPage() {
               />
             </div>
             <div>
-              <Label htmlFor="birth">생년월일 (예: 2000-01-01)</Label>
+              <Label htmlFor="birth">생년월일 (예: 961229)</Label>
               <Input
                 id="birth"
                 value={birth}
                 onChange={(e) => setBirth(e.target.value)}
-                placeholder="20000101"
+                placeholder="961229"
                 inputMode="numeric"
                 required
               />
