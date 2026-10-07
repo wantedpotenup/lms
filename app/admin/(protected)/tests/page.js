@@ -150,15 +150,17 @@ export default function TestsPage() {
               <Input value={form["응시일"]} onChange={(e) => setForm({ ...form, 응시일: e.target.value })} />
             </div>
             <div className="sm:col-span-2">
-              <Label>문항별 배점 (쉼표로 구분, 예: 8,8,8,5,8,12,8,12,8,5,8,10)</Label>
+              <Label>문항별 배점 (선택, 쉼표로 구분, 예: 8,8,8,5,8,12,8,12,8,5,8,10)</Label>
               <Input
                 value={form["문항배점"]}
                 onChange={(e) => setForm({ ...form, 문항배점: e.target.value })}
-                placeholder="8,8,8,5,8,12,8,12,8,5,8,10"
+                placeholder="총점만 올리는 시험이면 비워두세요"
               />
               <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                입력해두면 강사님께 드릴 채점 시트(문항 수·배점이 자동으로 반영된 엑셀 파일)를 바로 만들어드릴 수
-                있어요. 나중에 채점 결과를 업로드할 때도 이 배점을 기준으로 검증합니다.
+                <strong>문항별 점수까지 관리하는 시험</strong>이면 입력해주세요. 문항 수·배점이 자동으로 반영된 채점
+                시트(엑셀)를 만들어드리고, 결과를 올릴 때도 이 배점을 기준으로 검증합니다.{" "}
+                <strong>총점만 올리는 시험</strong>이면 비워두세요. 결과 등록과 일괄 업로드 때 구성원마다 총점
+                하나만 입력하면 됩니다.
               </p>
             </div>
             <div className="sm:col-span-2">
@@ -198,6 +200,7 @@ export default function TestsPage() {
                   <div className="flex items-center gap-2">
                     <p className="font-medium">{t["테스트명"]}</p>
                     <Badge tone={t["공개여부"] === "공개" ? "green" : "slate"}>{t["공개여부"] === "공개" ? "공개" : "비공개"}</Badge>
+                    <Badge tone="indigo">{t["문항배점"] ? "문항별 점수" : "총점만"}</Badge>
                   </div>
                   <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
                     {[t["과정명"], t["기수"] ? `${t["기수"]}기` : null, t["응시일"], `만점 ${t["만점"]}`]
@@ -211,13 +214,11 @@ export default function TestsPage() {
                       결과 관리
                     </Button>
                   </Link>
-                  {t["문항배점"] && (
-                    <a href={`/api/admin/tests/${t["테스트ID"]}/grading-sheet`}>
-                      <Button variant="secondary" className="px-2.5 py-1.5 text-xs">
-                        채점 시트 다운로드
-                      </Button>
-                    </a>
-                  )}
+                  <a href={`/api/admin/tests/${t["테스트ID"]}/grading-sheet`}>
+                    <Button variant="secondary" className="px-2.5 py-1.5 text-xs">
+                      {t["문항배점"] ? "채점 시트 다운로드" : "총점 입력 시트 다운로드"}
+                    </Button>
+                  </a>
                   <Button variant="secondary" className="px-2.5 py-1.5 text-xs" onClick={() => togglePublish(t)}>
                     {t["공개여부"] === "공개" ? "비공개로 전환" : "공개로 전환"}
                   </Button>

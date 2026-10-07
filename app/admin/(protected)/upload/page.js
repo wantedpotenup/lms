@@ -64,7 +64,8 @@ function TestResultUploadBox() {
   }, [loadTests]);
 
   const selectedTest = tests.find((t) => t["테스트ID"] === testId);
-  const canDownloadTemplate = Boolean(selectedTest && selectedTest["문항배점"]);
+  // 문항별 배점이 비어있는 시험은 "총점만 입력하는 시험"이다.
+  const isTotalOnly = Boolean(selectedTest) && !selectedTest["문항배점"];
 
   async function handleUpload(e) {
     e.preventDefault();
@@ -95,8 +96,9 @@ function TestResultUploadBox() {
     <Card>
       <h2 className="mb-1 text-sm font-semibold">테스트 결과 일괄 등록</h2>
       <p className="mb-4 text-xs text-slate-500 dark:text-slate-400">
-        먼저 테스트를 선택하면, 그 테스트의 문항 수·배점에 맞춰진 채점 시트(엑셀)를 내려받을 수 있어요. 강사님께서 그
-        시트에 바로 채점하신 뒤 완성된 파일을 그대로 올려주시면 됩니다.
+        먼저 테스트를 선택하면, 그 테스트에 맞춰진 채점 시트(엑셀)를 내려받을 수 있어요. 문항별 배점이 설정된
+        시험은 문항 수·배점이 반영된 시트가, 총점만 올리는 시험은 이름과 총점만 적는 간단한 시트가 내려받아집니다.
+        강사님께서 그 시트에 바로 채점하신 뒤 완성된 파일을 그대로 올려주시면 됩니다.
       </p>
 
       <div className="mb-4">
@@ -114,19 +116,20 @@ function TestResultUploadBox() {
             </option>
           ))}
         </select>
-        {testId && !canDownloadTemplate && (
-          <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
-            이 테스트는 아직 문항별 배점이 설정되지 않았어요. 테스트 관리 화면에서 먼저 입력해주세요.
+        {testId && isTotalOnly && (
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            이 테스트는 문항별 배점이 없는 &quot;총점만 올리는 시험&quot;이에요. 파일에 구성원 이름과 총점만 있으면
+            됩니다 (만점 {selectedTest["만점"]}점 이하).
           </p>
         )}
       </div>
 
-      {canDownloadTemplate && (
+      {testId && (
         <a
           href={`/api/admin/tests/${testId}/grading-sheet`}
           className="mb-4 inline-block text-xs text-indigo-600 underline underline-offset-2 dark:text-indigo-400"
         >
-          이 테스트용 채점 시트(엑셀) 다운로드
+          {isTotalOnly ? "이 테스트용 총점 입력 시트(엑셀) 다운로드" : "이 테스트용 채점 시트(엑셀) 다운로드"}
         </a>
       )}
 

@@ -4,20 +4,15 @@ import { use, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Button, Card, Input, Label, Select, Textarea } from "@/components/ui";
 
-function emptyQuestion(n) {
-  return { 문항번호: `Q${n}`, 배점: 8, 획득점수: 8, 피드백: "" };
-}
-
 // 테스트에 "문항배점"이 설정되어 있으면 그 문항 수·배점에 맞춰 고정된
 // 문항 목록을 만들어준다 (배점은 테스트 설정을 따르고, 획득점수만 입력).
-// 설정되어 있지 않은 예전 테스트는 문항을 자유롭게 추가/삭제하는 이전
-// 방식 그대로 둔다.
+// 설정이 비어있는 테스트는 "총점만 입력하는 시험"이라 문항 목록이 없다.
 function questionsForTest(test) {
   const raw = String(test?.["문항배점"] ?? "").trim();
-  if (!raw) return [emptyQuestion(1)];
+  if (!raw) return [];
   const maxScores = raw.split(",").map((s) => Number(s.trim()));
-  if (maxScores.some((n) => !Number.isFinite(n))) return [emptyQuestion(1)];
-  return maxScores.map((max, i) => ({ 문항번호: `Q${i + 1}`, 배점: max, 획득점수: max, 피드백: "" }));
+  if (maxScores.some((n) => !Number.isFinite(n))) return [];
+  return maxScores.map((max, i) => ({ 문항번호: `Q${i + 1}`, 배점: max, 획득점수: max }));
 }
 
 export default function TestResultsPage({ params }) {
@@ -33,10 +28,12 @@ export default function TestResultsPage({ params }) {
   const [memberId, setMemberId] = useState("");
   const [summary, setSummary] = useState("");
   const [combinedFeedback, setCombinedFeedback] = useState("");
-  const [questions, setQuestions] = useState([emptyQuestion(1)]);
+  const [questions, setQuestions] = useState([]);
+  const [totalScore, setTotalScore] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
-  const hasFixedQuestions = Boolean(test?.["문항배점"]);
+  // 문항별 배점이 없는 시험은 구성원마다 총점 하나만 입력한다.
+  const totalOnly = Boolean(test) && !test["문항배점"];
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -68,6 +65,7 @@ export default function TestResultsPage({ params }) {
     setSummary("");
     setCombinedFeedback("");
     setQuestions(questionsForTest(test));
+    setTotalScore("");
     setError("");
     setShowForm(true);
   }
@@ -80,13 +78,13 @@ export default function TestResultsPage({ params }) {
     setMemberId(data.result["구성원ID"]);
     setSummary(data.result["총평"] || "");
     setCombinedFeedback(data.result["문항별피드백"] || "");
+    setTotalScore(data.result["총점"] ?? "");
     setQuestions(
       data.questions.length > 0
         ? data.questions.map((q) => ({
             문항번호: q["문항번호"],
             배점: q["배점"],
             획득점수: q["획득점수"],
-            피드백: q["피드백"] || "",
           }))
         : questionsForTest(test)
     );
@@ -96,14 +94,6 @@ export default function TestResultsPage({ params }) {
 
   function updateQuestion(idx, field, value) {
     setQuestions((qs) => qs.map((q, i) => (i === idx ? { ...q, [field]: value } : q)));
-  }
-
-  function addQuestion() {
-    setQuestions((qs) => [...qs, emptyQuestion(qs.length + 1)]);
-  }
-
-  function removeQuestion(idx) {
-    setQuestions((qs) => (qs.length > 1 ? qs.filter((_, i) => i !== idx) : qs));
   }
 
   async function handleSubmit(e) {
@@ -116,7 +106,7 @@ export default function TestResultsPage({ params }) {
         구성원ID: memberId,
         총평: summary,
         문항별피드백: combinedFeedback,
-        questions,
+        ...(totalOnly ? { 총점: totalScore } : { questions }),
       };
       const res = await fetch(
         editingResultId ? `/api/admin/test-results/${editingResultId}` : "/api/admin/test-results",
@@ -177,78 +167,57 @@ export default function TestResultsPage({ params }) {
               </div>
             </div>
 
-            <div>
-              <Label>문항별 결과{hasFixedQuestions ? " (배점은 테스트 설정을 따릅니다)" : ""}</Label>
-              <div className="space-y-2 overflow-x-auto">
-                {questions.map((q, idx) => (
-                  <div
-                    key={idx}
-                    className={`grid min-w-[420px] gap-2 rounded-xl border border-slate-200 p-2 dark:border-slate-700 ${
-                      hasFixedQuestions ? "grid-cols-6" : "grid-cols-12"
-                    }`}
-                  >
-                    {hasFixedQuestions ? (
-                      <>
-                        <div className="col-span-2 flex items-center px-2 text-sm font-medium">{q["문항번호"]}</div>
-                        <div className="col-span-2 flex items-center px-2 text-sm text-slate-500 dark:text-slate-400">
-                          배점 {q["배점"]}
-                        </div>
-                        <input
-                          className="col-span-2 rounded-lg border border-slate-300 px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-900"
-                          type="number"
-                          value={q["획득점수"]}
-                          onChange={(e) => updateQuestion(idx, "획득점수", e.target.value)}
-                          placeholder="획득점수"
-                        />
-                      </>
-                    ) : (
-                      <>
-                        <input
-                          className="col-span-2 rounded-lg border border-slate-300 px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-900"
-                          value={q["문항번호"]}
-                          onChange={(e) => updateQuestion(idx, "문항번호", e.target.value)}
-                          placeholder="Q1"
-                        />
-                        <input
-                          className="col-span-2 rounded-lg border border-slate-300 px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-900"
-                          type="number"
-                          value={q["배점"]}
-                          onChange={(e) => updateQuestion(idx, "배점", e.target.value)}
-                          placeholder="배점"
-                        />
-                        <input
-                          className="col-span-2 rounded-lg border border-slate-300 px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-900"
-                          type="number"
-                          value={q["획득점수"]}
-                          onChange={(e) => updateQuestion(idx, "획득점수", e.target.value)}
-                          placeholder="획득점수"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeQuestion(idx)}
-                          className="col-span-1 rounded-lg text-xs text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-500/10"
-                        >
-                          삭제
-                        </button>
-                      </>
-                    )}
-                  </div>
-                ))}
+            {totalOnly ? (
+              <div className="sm:max-w-xs">
+                <Label>총점 (만점 {test["만점"]}점)</Label>
+                <Input
+                  required
+                  type="number"
+                  step="any"
+                  min={0}
+                  max={test["만점"]}
+                  value={totalScore}
+                  onChange={(e) => setTotalScore(e.target.value)}
+                  placeholder="예: 85"
+                />
               </div>
-              {!hasFixedQuestions && (
-                <Button type="button" variant="secondary" className="mt-2 px-3 py-1.5 text-xs" onClick={addQuestion}>
-                  + 문항 추가
-                </Button>
-              )}
-            </div>
+            ) : (
+              <div>
+                <Label>문항별 결과 (배점은 테스트 설정을 따릅니다)</Label>
+                <div className="space-y-2 overflow-x-auto">
+                  {questions.map((q, idx) => (
+                    <div
+                      key={idx}
+                      className="grid min-w-[420px] grid-cols-6 gap-2 rounded-xl border border-slate-200 p-2 dark:border-slate-700"
+                    >
+                      <div className="col-span-2 flex items-center px-2 text-sm font-medium">{q["문항번호"]}</div>
+                      <div className="col-span-2 flex items-center px-2 text-sm text-slate-500 dark:text-slate-400">
+                        배점 {q["배점"]}
+                      </div>
+                      <input
+                        className="col-span-2 rounded-lg border border-slate-300 px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-900"
+                        type="number"
+                        value={q["획득점수"]}
+                        onChange={(e) => updateQuestion(idx, "획득점수", e.target.value)}
+                        placeholder="획득점수"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div>
-              <Label>문항별 피드백 (선택)</Label>
+              <Label>{totalOnly ? "피드백 (선택)" : "문항별 피드백 (선택)"}</Label>
               <Textarea
                 rows={3}
                 value={combinedFeedback}
                 onChange={(e) => setCombinedFeedback(e.target.value)}
-                placeholder="Q3: ..., Q7: ... 처럼 감점된 문항에 대한 설명을 자유롭게 적어주세요."
+                placeholder={
+                  totalOnly
+                    ? "구성원에게 전달할 피드백을 자유롭게 적어주세요."
+                    : "Q3: ..., Q7: ... 처럼 감점된 문항에 대한 설명을 자유롭게 적어주세요."
+                }
               />
             </div>
 

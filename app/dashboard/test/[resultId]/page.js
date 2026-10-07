@@ -44,36 +44,38 @@ export default async function TestDetailPage({ params }) {
         <ScoreBar value={detail.score} max={detail.maxScore} />
       </Card>
 
-      <Card className="mb-6">
-        <h2 className="mb-3 text-sm font-semibold">문항별 결과</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="border-b border-slate-200 text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
-                <th className="py-2 pr-2 font-medium">문항</th>
-                <th className="py-2 pr-2 font-medium">획득점수</th>
-                <th className="py-2 pr-2 font-medium">배점</th>
-                <th className="py-2 font-medium">감점여부</th>
-              </tr>
-            </thead>
-            <tbody>
-              {detail.questions.map((q) => (
-                <tr
-                  key={q.questionNumber}
-                  className="border-b border-slate-100 last:border-0 dark:border-slate-800"
-                >
-                  <td className="py-2 pr-2 font-medium">{q.questionNumber}</td>
-                  <td className="py-2 pr-2">{q.earned}</td>
-                  <td className="py-2 pr-2 text-slate-500 dark:text-slate-400">{q.max}</td>
-                  <td className="py-2">
-                    {q.deducted ? <Badge tone="red">감점</Badge> : <Badge tone="green">정상</Badge>}
-                  </td>
+      {!detail.totalOnly && detail.questions.length > 0 && (
+        <Card className="mb-6">
+          <h2 className="mb-3 text-sm font-semibold">문항별 결과</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="border-b border-slate-200 text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
+                  <th className="py-2 pr-2 font-medium">문항</th>
+                  <th className="py-2 pr-2 font-medium">획득점수</th>
+                  <th className="py-2 pr-2 font-medium">배점</th>
+                  <th className="py-2 font-medium">감점여부</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Card>
+              </thead>
+              <tbody>
+                {detail.questions.map((q) => (
+                  <tr
+                    key={q.questionNumber}
+                    className="border-b border-slate-100 last:border-0 dark:border-slate-800"
+                  >
+                    <td className="py-2 pr-2 font-medium">{q.questionNumber}</td>
+                    <td className="py-2 pr-2">{q.earned}</td>
+                    <td className="py-2 pr-2 text-slate-500 dark:text-slate-400">{q.max}</td>
+                    <td className="py-2">
+                      {q.deducted ? <Badge tone="red">감점</Badge> : <Badge tone="green">정상</Badge>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
 
       {feedbackQuestions.length > 0 && (
         <Card className="mb-6">
@@ -93,7 +95,7 @@ export default async function TestDetailPage({ params }) {
 
       {detail.combinedFeedback && (
         <Card className="mb-6">
-          <h2 className="mb-2 text-sm font-semibold">문항별 피드백</h2>
+          <h2 className="mb-2 text-sm font-semibold">{detail.totalOnly ? "피드백" : "문항별 피드백"}</h2>
           <p className="whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-300">
             {detail.combinedFeedback}
           </p>
