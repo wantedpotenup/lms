@@ -2,7 +2,7 @@ import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { getMemberSession } from "@/lib/auth";
 import { getTestDetailForMember, NotFoundError } from "@/lib/data";
-import { Card, ScoreRing, ScoreBar, Badge } from "@/components/ui";
+import { Card, ScoreBar, Badge } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -22,15 +22,11 @@ export default async function TestDetailPage({ params }) {
   const feedbackQuestions = detail.questions.filter((q) => q.deducted && q.feedback);
 
   const hasAverage = detail.average !== null && detail.average !== undefined;
-  // 오른쪽 목록: 내 위치(상위 N%)는 항상, 최고점/최저점은 관리자가 켜둔 테스트만.
-  const sideRows = [];
-  if (detail.position) sideRows.push({ label: "내 위치", value: detail.position, dot: "bg-indigo-500" });
-  if (detail.highest !== null && detail.highest !== undefined) {
-    sideRows.push({ label: "최고점", value: `${detail.highest} / ${detail.maxScore}`, dot: "bg-emerald-500" });
-  }
-  if (detail.lowest !== null && detail.lowest !== undefined) {
-    sideRows.push({ label: "최저점", value: `${detail.lowest} / ${detail.maxScore}`, dot: "bg-indigo-300" });
-  }
+  // 오른쪽 "평균 및 분포": 평균은 항상, 최저/최고점은 관리자가 켜둔 테스트만.
+  const statRows = [];
+  if (hasAverage) statRows.push({ label: "평균 점수", value: detail.average });
+  if (detail.lowest !== null && detail.lowest !== undefined) statRows.push({ label: "최저 점수", value: detail.lowest });
+  if (detail.highest !== null && detail.highest !== undefined) statRows.push({ label: "최고 점수", value: detail.highest });
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8">
@@ -46,52 +42,55 @@ export default async function TestDetailPage({ params }) {
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">응시일 {detail.testDate || "-"}</p>
       </div>
 
-      <Card className="mb-6">
-        <div
-          className={`grid items-center gap-6 ${
-            sideRows.length > 0 ? "sm:grid-cols-[auto_1fr_minmax(0,14rem)]" : "sm:grid-cols-[auto_1fr]"
-          }`}
-        >
-          <div className="flex justify-center">
-            <ScoreRing value={detail.score} max={detail.maxScore} />
+      <div className={`mb-6 grid gap-4 ${statRows.length > 0 ? "sm:grid-cols-2" : ""}`}>
+        <Card>
+          <h2 className="text-sm font-semibold">내 점수</h2>
+          <p className="mt-3 text-4xl font-bold">
+            {detail.score}
+            <span className="ml-2 text-xl font-medium text-slate-500 dark:text-slate-400">/ {detail.maxScore}</span>
+          </p>
+          <div className="mt-4">
+            <ScoreBar value={detail.score} max={detail.maxScore} />
           </div>
+          {detail.position && (
+            <span className="mt-5 inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1.5 text-sm font-semibold text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+                <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+                <path d="M4 22h16" />
+                <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+                <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+                <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+              </svg>
+              {detail.position}
+            </span>
+          )}
+        </Card>
 
-          <div>
-            {hasAverage ? (
-              <>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                  전체 평균{detail.respondents > 0 ? ` (응시 ${detail.respondents}명)` : ""}
-                </p>
-                <p className="mt-1 text-3xl font-bold">
-                  {detail.average}
-                  <span className="ml-1.5 text-lg font-medium text-slate-500 dark:text-slate-400">
-                    / {detail.maxScore}
-                  </span>
-                </p>
-                <div className="mt-3">
-                  <ScoreBar value={detail.average} max={detail.maxScore} />
-                </div>
-              </>
-            ) : (
-              <ScoreBar value={detail.score} max={detail.maxScore} />
-            )}
-          </div>
-
-          {sideRows.length > 0 && (
-            <ul className="divide-y divide-slate-100 border-t border-slate-200 pt-1 sm:border-l sm:border-t-0 sm:pl-6 sm:pt-0 dark:divide-slate-800 dark:border-slate-700">
-              {sideRows.map((row) => (
-                <li key={row.label} className="flex items-center justify-between gap-3 py-3 text-sm">
-                  <span className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
-                    <span className={`h-2.5 w-2.5 rounded-full ${row.dot}`} />
-                    {row.label}
-                  </span>
-                  <span className="font-semibold">{row.value}</span>
+        {statRows.length > 0 && (
+          <Card>
+            <h2 className="text-sm font-semibold">
+              평균 및 분포
+              {detail.respondents > 0 && (
+                <span className="ml-2 text-xs font-normal text-slate-500 dark:text-slate-400">
+                  응시 {detail.respondents}명
+                </span>
+              )}
+            </h2>
+            <ul className="mt-3 space-y-2">
+              {statRows.map((row) => (
+                <li
+                  key={row.label}
+                  className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3 text-sm dark:bg-slate-800/60"
+                >
+                  <span className="text-slate-500 dark:text-slate-400">{row.label}</span>
+                  <span className="font-semibold">{row.value}점</span>
                 </li>
               ))}
             </ul>
-          )}
-        </div>
-      </Card>
+          </Card>
+        )}
+      </div>
 
       {!detail.totalOnly && detail.questions.length > 0 && (
         <Card className="mb-6">
