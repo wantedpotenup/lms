@@ -16,7 +16,7 @@ export default async function DashboardPage() {
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8">
       <header className="mb-8 flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold">{member.name}님, 안녕하세요</h1>
+          <h1 className="text-2xl font-bold">{member.name}님, 안녕하세요 🥰</h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             {[member.courseName, member.cohort ? `${member.cohort}기` : null]
               .filter(Boolean)
@@ -27,7 +27,7 @@ export default async function DashboardPage() {
       </header>
 
       <section className="mb-10">
-        <h2 className="mb-3 text-base font-semibold">테스트 결과</h2>
+        <h2 className="mb-3 text-base font-semibold">🎯 테스트 결과</h2>
         {tests.length === 0 ? (
           <EmptyState>아직 등록된 테스트 결과가 없습니다.</EmptyState>
         ) : (
@@ -51,7 +51,7 @@ export default async function DashboardPage() {
       </section>
 
       <section>
-        <h2 className="mb-3 text-base font-semibold">프로젝트 평가</h2>
+        <h2 className="mb-3 text-base font-semibold">🔥 프로젝트 평가</h2>
         {projects.length === 0 ? (
           <EmptyState>아직 공개된 프로젝트 평가 결과가 없습니다.</EmptyState>
         ) : (
