@@ -39,6 +39,7 @@ export default async function DashboardPage() {
                     <p className="truncate font-medium">{t.testName}</p>
                     <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
                       응시일 {t.testDate || "-"}
+                      {t.average !== null && t.average !== undefined ? ` · 전체 평균 ${t.average}점` : ""}
                     </p>
                   </div>
                   <ScorePill value={t.score} max={t.maxScore} />

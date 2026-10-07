@@ -34,6 +34,14 @@ export default function TestResultsPage({ params }) {
   const [saving, setSaving] = useState(false);
   // 문항별 배점이 없는 시험은 구성원마다 총점 하나만 입력한다.
   const totalOnly = Boolean(test) && !test["문항배점"];
+  // 이 테스트에 등록된 전체 결과의 평균 총점 (소수 첫째 자리까지)
+  const scoredResults = results.filter((r) => String(r["총점"] ?? "").trim() !== "");
+  const averageScore =
+    scoredResults.length > 0
+      ? Math.round(
+          (scoredResults.reduce((sum, r) => sum + (Number(r["총점"]) || 0), 0) / scoredResults.length) * 10
+        ) / 10
+      : null;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -236,6 +244,25 @@ export default function TestResultsPage({ params }) {
               </Button>
             </div>
           </form>
+        </Card>
+      )}
+
+      {averageScore !== null && (
+        <Card className="mb-6 flex flex-wrap items-center gap-x-8 gap-y-2">
+          <div>
+            <p className="text-xs text-slate-500 dark:text-slate-400">전체 평균</p>
+            <p className="text-lg font-bold">
+              {averageScore}
+              <span className="text-sm font-normal text-slate-500 dark:text-slate-400">
+                {" "}
+                / {test?.["만점"] ?? "-"}점
+              </span>
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-500 dark:text-slate-400">등록된 결과</p>
+            <p className="text-lg font-bold">{scoredResults.length}명</p>
+          </div>
         </Card>
       )}
 

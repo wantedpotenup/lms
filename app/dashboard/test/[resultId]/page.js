@@ -42,6 +42,42 @@ export default async function TestDetailPage({ params }) {
 
       <Card className="mb-6">
         <ScoreBar value={detail.score} max={detail.maxScore} />
+        {detail.average !== null && detail.average !== undefined && (
+          <dl className="mt-4 space-y-2 border-t border-slate-200 pt-3 text-sm dark:border-slate-700">
+            <div className="flex items-center justify-between">
+              <dt className="text-slate-500 dark:text-slate-400">
+                전체 평균{detail.respondents > 0 ? ` (응시 ${detail.respondents}명)` : ""}
+              </dt>
+              <dd className="font-semibold">
+                {detail.average} / {detail.maxScore}
+              </dd>
+            </div>
+            {detail.position && (
+              <div className="flex items-center justify-between">
+                <dt className="text-slate-500 dark:text-slate-400">내 위치</dt>
+                <dd>
+                  <Badge tone="indigo">{detail.position}</Badge>
+                </dd>
+              </div>
+            )}
+            {detail.highest !== null && detail.highest !== undefined && (
+              <div className="flex items-center justify-between">
+                <dt className="text-slate-500 dark:text-slate-400">최고점</dt>
+                <dd className="font-semibold">
+                  {detail.highest} / {detail.maxScore}
+                </dd>
+              </div>
+            )}
+            {detail.lowest !== null && detail.lowest !== undefined && (
+              <div className="flex items-center justify-between">
+                <dt className="text-slate-500 dark:text-slate-400">최저점</dt>
+                <dd className="font-semibold">
+                  {detail.lowest} / {detail.maxScore}
+                </dd>
+              </div>
+            )}
+          </dl>
+        )}
       </Card>
 
       {!detail.totalOnly && detail.questions.length > 0 && (

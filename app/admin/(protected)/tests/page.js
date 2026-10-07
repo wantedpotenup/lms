@@ -102,6 +102,17 @@ export default function TestsPage() {
     if (res.ok) await load();
   }
 
+  // 구성원 화면에 이 테스트의 최고점/최저점을 보여줄지 켜고 끈다.
+  async function toggleHighLow(t) {
+    const next = t["최고최저점공개"] === "공개" ? "비공개" : "공개";
+    const res = await fetch(`/api/admin/tests/${t["테스트ID"]}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 최고최저점공개: next }),
+    });
+    if (res.ok) await load();
+  }
+
   async function togglePublish(t) {
     const next = t["공개여부"] === "공개" ? "비공개" : "공개";
     const res = await fetch(`/api/admin/tests/${t["테스트ID"]}`, {
@@ -201,6 +212,7 @@ export default function TestsPage() {
                     <p className="font-medium">{t["테스트명"]}</p>
                     <Badge tone={t["공개여부"] === "공개" ? "green" : "slate"}>{t["공개여부"] === "공개" ? "공개" : "비공개"}</Badge>
                     <Badge tone="indigo">{t["문항배점"] ? "문항별 점수" : "총점만"}</Badge>
+                    {t["최고최저점공개"] === "공개" && <Badge tone="green">최고·최저점 표시 중</Badge>}
                   </div>
                   <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
                     {[t["과정명"], t["기수"] ? `${t["기수"]}기` : null, t["응시일"], `만점 ${t["만점"]}`]
@@ -219,6 +231,9 @@ export default function TestsPage() {
                       {t["문항배점"] ? "채점 시트 다운로드" : "총점 입력 시트 다운로드"}
                     </Button>
                   </a>
+                  <Button variant="secondary" className="px-2.5 py-1.5 text-xs" onClick={() => toggleHighLow(t)}>
+                    {t["최고최저점공개"] === "공개" ? "최고·최저점 끄기" : "최고·최저점 켜기"}
+                  </Button>
                   <Button variant="secondary" className="px-2.5 py-1.5 text-xs" onClick={() => togglePublish(t)}>
                     {t["공개여부"] === "공개" ? "비공개로 전환" : "공개로 전환"}
                   </Button>

@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Windows 폴더 설정 파일 (프로그램과 무관)
+desktop.ini

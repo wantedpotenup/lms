@@ -28,6 +28,7 @@ const HEADERS = {
     "공개여부",
     "문항배점",
     "채점기준",
+    "최고최저점공개",
   ],
   [SHEET_NAMES.TEST_RESULTS]: [
     "결과ID",
