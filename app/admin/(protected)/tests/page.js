@@ -102,25 +102,34 @@ export default function TestsPage() {
     if (res.ok) await load();
   }
 
-  // 구성원 화면에 이 테스트의 최고점/최저점을 보여줄지 켜고 끈다.
-  async function toggleHighLow(t) {
-    const next = t["최고최저점공개"] === "공개" ? "비공개" : "공개";
-    const res = await fetch(`/api/admin/tests/${t["테스트ID"]}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 최고최저점공개: next }),
-    });
-    if (res.ok) await load();
+  // 테스트 한두 칸만 바꾸는 공용 함수. 실패하면 화면 위쪽에 이유를 보여준다
+  // (예전에는 실패해도 아무 반응이 없어서 원인을 알 수 없었다).
+  async function updateTestFields(t, fields) {
+    setLoadError("");
+    try {
+      const res = await fetch(`/api/admin/tests/${t["테스트ID"]}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(fields),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setLoadError(data.error || "변경에 실패했습니다. 잠시 후 다시 시도해주세요.");
+        return;
+      }
+      await load();
+    } catch {
+      setLoadError("네트워크 오류로 변경하지 못했습니다. 잠시 후 다시 시도해주세요.");
+    }
   }
 
-  async function togglePublish(t) {
-    const next = t["공개여부"] === "공개" ? "비공개" : "공개";
-    const res = await fetch(`/api/admin/tests/${t["테스트ID"]}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 공개여부: next }),
-    });
-    if (res.ok) await load();
+  // 구성원 화면에 이 테스트의 최고점/최저점을 보여줄지 켜고 끈다.
+  function toggleHighLow(t) {
+    return updateTestFields(t, { 최고최저점공개: t["최고최저점공개"] === "공개" ? "비공개" : "공개" });
+  }
+
+  function togglePublish(t) {
+    return updateTestFields(t, { 공개여부: t["공개여부"] === "공개" ? "비공개" : "공개" });
   }
 
   return (
