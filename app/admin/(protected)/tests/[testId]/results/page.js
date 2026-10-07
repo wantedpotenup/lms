@@ -42,6 +42,9 @@ export default function TestResultsPage({ params }) {
           (scoredResults.reduce((sum, r) => sum + (Number(r["총점"]) || 0), 0) / scoredResults.length) * 10
         ) / 10
       : null;
+  const scoreList = scoredResults.map((r) => Number(r["총점"]) || 0);
+  const highestScore = scoreList.length > 0 ? Math.max(...scoreList) : null;
+  const lowestScore = scoreList.length > 0 ? Math.min(...scoreList) : null;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -248,21 +251,27 @@ export default function TestResultsPage({ params }) {
       )}
 
       {averageScore !== null && (
-        <Card className="mb-6 flex flex-wrap items-center gap-x-8 gap-y-2">
-          <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">전체 평균</p>
-            <p className="text-lg font-bold">
-              {averageScore}
-              <span className="text-sm font-normal text-slate-500 dark:text-slate-400">
-                {" "}
-                / {test?.["만점"] ?? "-"}점
-              </span>
-            </p>
+        <Card className="mb-6">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            {[
+              { label: "전체 평균", value: averageScore, unit: `/ ${test?.["만점"] ?? "-"}점` },
+              { label: "최고점", value: highestScore, unit: `/ ${test?.["만점"] ?? "-"}점` },
+              { label: "최저점", value: lowestScore, unit: `/ ${test?.["만점"] ?? "-"}점` },
+              { label: "등록된 결과", value: scoredResults.length, unit: "명" },
+            ].map((item) => (
+              <div key={item.label}>
+                <p className="text-xs text-slate-500 dark:text-slate-400">{item.label}</p>
+                <p className="text-lg font-bold">
+                  {item.value}
+                  <span className="text-sm font-normal text-slate-500 dark:text-slate-400"> {item.unit}</span>
+                </p>
+              </div>
+            ))}
           </div>
-          <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">등록된 결과</p>
-            <p className="text-lg font-bold">{scoredResults.length}명</p>
-          </div>
+          <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
+            관리자 화면에서는 최고·최저점과 구성원별 위치가 항상 보입니다. 구성원 화면에는 최고·최저점은 &quot;최고·최저점
+            켜기&quot;를 한 테스트만, 위치는 응시자가 5명 이상일 때만 표시됩니다.
+          </p>
         </Card>
       )}
 
@@ -273,11 +282,12 @@ export default function TestResultsPage({ params }) {
           <p className="py-8 text-center text-sm text-slate-500">등록된 결과가 없습니다.</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[520px] text-left text-sm">
+            <table className="w-full min-w-[560px] text-left text-sm">
               <thead>
                 <tr className="border-b border-slate-200 text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
                   <th className="py-2 pr-2 font-medium">구성원</th>
                   <th className="py-2 pr-2 font-medium">총점</th>
+                  <th className="py-2 pr-2 font-medium">위치</th>
                   <th className="py-2 pr-2 font-medium">등록일</th>
                   <th className="py-2 font-medium text-right">관리</th>
                 </tr>
@@ -289,6 +299,7 @@ export default function TestResultsPage({ params }) {
                     <td className="py-2 pr-2">
                       {r["총점"]} / {test?.["만점"] ?? "-"}
                     </td>
+                    <td className="py-2 pr-2">{r["위치"] || "-"}</td>
                     <td className="py-2 pr-2 text-slate-500 dark:text-slate-400">{r["등록일"]}</td>
                     <td className="py-2 text-right whitespace-nowrap">
                       <Button variant="ghost" className="px-2 py-1 text-xs" onClick={() => openEdit(r["결과ID"])}>

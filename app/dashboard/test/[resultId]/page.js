@@ -2,7 +2,7 @@ import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { getMemberSession } from "@/lib/auth";
 import { getTestDetailForMember, NotFoundError } from "@/lib/data";
-import { Card, ScorePill, ScoreBar, Badge } from "@/components/ui";
+import { Card, ScoreRing, ScoreBar, Badge } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +21,17 @@ export default async function TestDetailPage({ params }) {
 
   const feedbackQuestions = detail.questions.filter((q) => q.deducted && q.feedback);
 
+  const hasAverage = detail.average !== null && detail.average !== undefined;
+  // 오른쪽 목록: 내 위치(상위 N%)는 항상, 최고점/최저점은 관리자가 켜둔 테스트만.
+  const sideRows = [];
+  if (detail.position) sideRows.push({ label: "내 위치", value: detail.position, dot: "bg-indigo-500" });
+  if (detail.highest !== null && detail.highest !== undefined) {
+    sideRows.push({ label: "최고점", value: `${detail.highest} / ${detail.maxScore}`, dot: "bg-emerald-500" });
+  }
+  if (detail.lowest !== null && detail.lowest !== undefined) {
+    sideRows.push({ label: "최저점", value: `${detail.lowest} / ${detail.maxScore}`, dot: "bg-indigo-300" });
+  }
+
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8">
       <Link
@@ -30,54 +41,56 @@ export default async function TestDetailPage({ params }) {
         ← 목록으로
       </Link>
 
-      <div className="mb-6 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold">{detail.testName}</h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            응시일 {detail.testDate || "-"}
-          </p>
-        </div>
-        <ScorePill value={detail.score} max={detail.maxScore} />
+      <div className="mb-6">
+        <h1 className="text-xl font-bold">{detail.testName}</h1>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">응시일 {detail.testDate || "-"}</p>
       </div>
 
       <Card className="mb-6">
-        <ScoreBar value={detail.score} max={detail.maxScore} />
-        {detail.average !== null && detail.average !== undefined && (
-          <dl className="mt-4 space-y-2 border-t border-slate-200 pt-3 text-sm dark:border-slate-700">
-            <div className="flex items-center justify-between">
-              <dt className="text-slate-500 dark:text-slate-400">
-                전체 평균{detail.respondents > 0 ? ` (응시 ${detail.respondents}명)` : ""}
-              </dt>
-              <dd className="font-semibold">
-                {detail.average} / {detail.maxScore}
-              </dd>
-            </div>
-            {detail.position && (
-              <div className="flex items-center justify-between">
-                <dt className="text-slate-500 dark:text-slate-400">내 위치</dt>
-                <dd>
-                  <Badge tone="indigo">{detail.position}</Badge>
-                </dd>
-              </div>
+        <div
+          className={`grid items-center gap-6 ${
+            sideRows.length > 0 ? "sm:grid-cols-[auto_1fr_minmax(0,14rem)]" : "sm:grid-cols-[auto_1fr]"
+          }`}
+        >
+          <div className="flex justify-center">
+            <ScoreRing value={detail.score} max={detail.maxScore} />
+          </div>
+
+          <div>
+            {hasAverage ? (
+              <>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  전체 평균{detail.respondents > 0 ? ` (응시 ${detail.respondents}명)` : ""}
+                </p>
+                <p className="mt-1 text-3xl font-bold">
+                  {detail.average}
+                  <span className="ml-1.5 text-lg font-medium text-slate-500 dark:text-slate-400">
+                    / {detail.maxScore}
+                  </span>
+                </p>
+                <div className="mt-3">
+                  <ScoreBar value={detail.average} max={detail.maxScore} />
+                </div>
+              </>
+            ) : (
+              <ScoreBar value={detail.score} max={detail.maxScore} />
             )}
-            {detail.highest !== null && detail.highest !== undefined && (
-              <div className="flex items-center justify-between">
-                <dt className="text-slate-500 dark:text-slate-400">최고점</dt>
-                <dd className="font-semibold">
-                  {detail.highest} / {detail.maxScore}
-                </dd>
-              </div>
-            )}
-            {detail.lowest !== null && detail.lowest !== undefined && (
-              <div className="flex items-center justify-between">
-                <dt className="text-slate-500 dark:text-slate-400">최저점</dt>
-                <dd className="font-semibold">
-                  {detail.lowest} / {detail.maxScore}
-                </dd>
-              </div>
-            )}
-          </dl>
-        )}
+          </div>
+
+          {sideRows.length > 0 && (
+            <ul className="divide-y divide-slate-100 border-t border-slate-200 pt-1 sm:border-l sm:border-t-0 sm:pl-6 sm:pt-0 dark:divide-slate-800 dark:border-slate-700">
+              {sideRows.map((row) => (
+                <li key={row.label} className="flex items-center justify-between gap-3 py-3 text-sm">
+                  <span className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                    <span className={`h-2.5 w-2.5 rounded-full ${row.dot}`} />
+                    {row.label}
+                  </span>
+                  <span className="font-semibold">{row.value}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </Card>
 
       {!detail.totalOnly && detail.questions.length > 0 && (
@@ -138,12 +151,22 @@ export default async function TestDetailPage({ params }) {
         </Card>
       )}
 
-      <Card>
-        <h2 className="mb-2 text-sm font-semibold">총평</h2>
-        <p className="whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-300">
-          {detail.summary || "등록된 총평이 없습니다."}
-        </p>
-      </Card>
+      {String(detail.summary ?? "").trim() !== "" && (
+        <Card className="flex items-center gap-5 bg-emerald-50/40 dark:bg-emerald-500/5">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" />
+              <path d="m8.5 12.5 2.5 2.5 4.5-5" />
+            </svg>
+          </div>
+          <div className="min-w-0 self-stretch border-l border-slate-200 pl-5 dark:border-slate-700">
+            <h2 className="text-sm font-semibold">총평</h2>
+            <p className="mt-1 whitespace-pre-wrap text-sm text-slate-600 dark:text-slate-300">
+              {detail.summary}
+            </p>
+          </div>
+        </Card>
+      )}
     </main>
   );
 }

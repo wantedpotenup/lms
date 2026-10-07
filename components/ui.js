@@ -30,6 +30,49 @@ export function ScoreBar({ value, max, colorClassName = "bg-indigo-500" }) {
   );
 }
 
+// 점수를 원형 게이지로 보여준다 (가운데에 점수, 아래에 만점).
+export function ScoreRing({ value, max, size = 120 }) {
+  const stroke = 10;
+  const r = (size - stroke) / 2;
+  const c = 2 * Math.PI * r;
+  const ratio = max > 0 ? Math.max(0, Math.min(1, value / max)) : 0;
+  return (
+    <div
+      className="relative shrink-0"
+      style={{ width: size, height: size }}
+      role="img"
+      aria-label={`${value}점 / ${max}점`}
+    >
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          strokeWidth={stroke}
+          className="stroke-slate-200 dark:stroke-slate-700"
+        />
+        {ratio > 0 && (
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={r}
+            fill="none"
+            strokeWidth={stroke}
+            strokeLinecap="round"
+            strokeDasharray={`${c * ratio} ${c}`}
+            className="stroke-indigo-500"
+          />
+        )}
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-3xl font-bold leading-none">{value}</span>
+        <span className="mt-1 text-xs text-slate-500 dark:text-slate-400">/ {max}</span>
+      </div>
+    </div>
+  );
+}
+
 export function ScorePill({ value, max }) {
   const pct = max > 0 ? value / max : 0;
   const color =
